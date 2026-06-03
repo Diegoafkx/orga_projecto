@@ -56,7 +56,7 @@ main:
 	#aqui crear un loop que evite que se ingrese alguna cadena que rompa el codigo (una funcion para repetir despues del segundo numero)
 	li $v0, 10
 	syscall
-
+#metodo para insertar el signo de la operacion
 ingresar_operador:
 	li $t0, 0
 	li $t1, 1
@@ -92,6 +92,7 @@ ingresar_operador:
 	endop: 
 		jr $ra
 
+#metodo para obtencion de los numeros
 ingresar_numeros:
 	#aqui se recibe el primer numero
 	li $v0, 8
@@ -107,6 +108,7 @@ ingresar_numeros:
 		syscall
 		jr $ra
 	
+#metodo para duplicar el contenido del auxiliador a las variables necesarias
 copiar:
 	lb $t2, 0($t0)
 	sb $t2, 0($t1)

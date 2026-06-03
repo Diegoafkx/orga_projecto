@@ -7,6 +7,9 @@ msg3: .asciiz "Las operaciones disponibles son:\n '-' para resta\n '+' para suma
 msg4: .asciiz "Porfavor ingrese el segundo numero, con un signo de suma o resta en la primera posicion: \n"
 error1: .asciiz "Se ingreso un caracter invalido\n"
 
+#vyckhy
+
+
 aux: .space 51
 num1 : .space 51
 num2: .space 51
@@ -14,8 +17,8 @@ ope: .space 2
 result: .space 52
 .text
 
+	
 .globl main
-
 main:	
 	li $s0, 0
 	#aqui se imprime el wlcom
@@ -120,3 +123,45 @@ copiar:
 	j copiar
 	endcop:
 		jr $ra
+		
+		
+#vyckhy
+		
+validar_digitos:#num1
+	li $t0, 0 #entro y pingo el indice en 0
+	
+	loopval:  #el bucle 
+	lb $t1, num1($t0)
+	beqz $t1, valido
+	blt $t1, '0', invalido
+	bgt $t1, '9', invalido
+	addi $t0, $t0, 1
+	j loopval 
+				
+invalido: 
+	li $v0, 4
+	la $a0, error1
+	syscall
+	jr $ra
+valido: 
+	jr $ra	
+	
+validar_digitos2:#num2
+	li $t0, 0 
+	
+	loopval2:
+	lb $t1, num2($t0)
+	beqz $t1, valido2
+	blt $t1, '0', invalido2
+	bgt $t1, '9', invalido2
+	addi $t0, $t0, 1
+	j loopval2 
+				
+invalido2: 
+	li $v0, 4
+	la $a0, error1
+	syscall
+	jr $ra
+valido2: 
+	jr $ra	
+		

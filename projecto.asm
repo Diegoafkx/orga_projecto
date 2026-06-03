@@ -37,6 +37,7 @@ main:
 	la $t1, num1
 		
 	jal copiar
+	jal validar_digitos
 	
 	#aqui se imprime el num1 escrito
 	li $v0, 4
@@ -55,6 +56,7 @@ main:
 	la $t0, aux
 	la $t1, num2
 	jal copiar
+	jal validar_digitos2
 	
 	#aqui crear un loop que evite que se ingrese alguna cadena que rompa el codigo (una funcion para repetir despues del segundo numero)
 	li $v0, 10
@@ -130,9 +132,26 @@ copiar:
 validar_digitos:#num1
 	li $t0, 0 #entro y pingo el indice en 0
 	
-	loopval:  #el bucle 
+	validar_signo:
+	#el +
+	lb $t1, num1($t0)
+	li $t2, '+'
+	beq $t1, $t2, signo_ok
+	#el -
+	lb $t1, num1($t0)
+	li $t3, '-'
+	beq $t1, $t3, signo_ok
+	#si no es ni + ni -
+	j invalido
+	
+	signo_ok:
+	li $t0, 1
+	
+	loopval:  #el loop de digitos
 	lb $t1, num1($t0)
 	beqz $t1, valido
+	li $t4, 10
+	beq $t1, $t4, valido
 	blt $t1, '0', invalido
 	bgt $t1, '9', invalido
 	addi $t0, $t0, 1
@@ -149,9 +168,26 @@ valido:
 validar_digitos2:#num2
 	li $t0, 0 
 	
+	validar_signo2:
+	#el +
+	lb $t1, num2($t0)
+	li $t2, '+'
+	beq $t1, $t2, signo_ok2
+	#el -
+	lb $t1, num2($t0)
+	li $t3, '-'
+	beq $t1, $t3, signo_ok2
+	#si no es ni + ni -
+	j invalido2
+	
+	signo_ok2:
+	li $t0, 1
+	
 	loopval2:
 	lb $t1, num2($t0)
 	beqz $t1, valido2
+	li $t4, 10
+        beq $t1, $t4, valido2
 	blt $t1, '0', invalido2
 	bgt $t1, '9', invalido2
 	addi $t0, $t0, 1

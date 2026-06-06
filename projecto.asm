@@ -7,9 +7,9 @@ msg3: .asciiz "Las operaciones disponibles son:\n '-' para resta\n '+' para suma
 msg4: .asciiz "Porfavor ingrese el segundo numero, con un signo de suma o resta en la primera posicion: \n"
 error1: .asciiz "Se ingreso un caracter invalido\n"
 resultado: .asciiz "El resultado de la operacion es:\n"
-
+ 
 #vyckhy
-
+ 
 aux1: .word '0'
 aux: .space 51
 num1 : .space 51
@@ -17,7 +17,7 @@ num2: .space 51
 ope: .space 2
 result: .space 52
 .text
-
+ 
 	
 .globl main
 main:	
@@ -130,7 +130,7 @@ ingresar_operador:
 			j loopop
 	endop: 
 		jr $ra
-
+ 
 #metodo para obtencion de los numeros
 ingresar_numeros:
 	#aqui se recibe el primer numero
@@ -164,11 +164,10 @@ copiar:
 validar_digitos:
 	addi $sp, $sp, -4
 	sw $ra, 0($sp)
+	pedir_de_nuevo:
 	jal ingresar_numeros
 	li $t0, 0
-	li $t7, 0
 	lb $t1, aux($t0)
-	li $t4, 10
 	beq $t1, $s1, loopval
 	beq $t1, $s2, loopval
 	#si no es ni + ni -
@@ -177,7 +176,7 @@ validar_digitos:
 		addi $t0, $t0, 1
 		lb $t1, aux($t0)
 		beq $t1, $zero, valido
-		beq $t1, $t4, valido
+		beq $t1, 10, valido
 		blt $t1, '0', invalido
 		bgt $t1, '9', invalido
 		j loopval 
@@ -185,19 +184,16 @@ validar_digitos:
 		li $v0, 4
 		la $a0, error1
 		syscall
-		if_invalido_num1:
-			bne $s6, $t7, else_invalido_num2
-			li $v0, 4
-			la $a0, msg1
-			syscall
-			j end_invalido
-		else_invalido_num2:
+		bne $s6, $zero, pedir_num2
+		li $v0, 4
+		la $a0, msg1
+		syscall
+		j pedir_de_nuevo
+		pedir_num2:
 			li $v0, 4
 			la $a0, msg4
 			syscall
-			j end_invalido
-		end_invalido:
-			j validar_digitos
+			j pedir_de_nuevo
 	valido: 
 		lw $ra, 0($sp)
 		addi $sp, $sp, 4
@@ -207,14 +203,14 @@ suma:
 	li $t9,0
 	li $t8, 2 #para indicar si se resta o se le suma uno al numero
 	bge $s4, $s5, seguir_suma
-	la $t0, 1
+	li $t0, 1
 	lb $t1, num1($t0)
 	lb $t2, num2($t0)
 	bge $t1, $t2, seguir_suma
 	li $t9, 1
 	addi $sp, $sp, -4
 	sw $ra, 0($sp)
-	move $t3, $4, 
+	move $t3, $a0
 	move $s4, $s5
 	move $s5, $t3
 	la $t0, num1
@@ -300,11 +296,14 @@ suma:
 			sb $t5, result($s4)
 			salir_suma:
 				sb $t1, result($s4)
-				beqz, $t9, salida_suma
+				beqz $t9, salida_suma
 				lw $ra, 0($sp)
 				addi $sp, $sp, 4
 				salida_suma:
 				jr $ra
 resta:
-
+	jr $ra
+ 
 multiplicar:
+	jr $ra
+	

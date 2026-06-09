@@ -8,8 +8,8 @@ msg4: .asciiz "Porfavor ingrese el segundo numero, con un signo de suma o resta 
 error1: .asciiz "Se ingreso un caracter invalido\n"
 resultado: .asciiz "El resultado de la operacion es:\n"
  
-#vyckhy
- 
+
+salto: .asciiz "\n"
 aux1: .word '0'
 aux: .space 51
 num1 : .space 51
@@ -74,6 +74,9 @@ main:
 	#aqui se imprime el num1 escrito
 	li $v0, 4
 	la $a0, num2
+	syscall
+	li $v0, 4
+	la $a0, salto
 	syscall
 	lb $t5, ope
 	bne $s1, $t5, restar
@@ -160,26 +163,28 @@ copiar:
 		addi $t3, $t3, -1
 		jr $ra	
 		
-#vyckhy
+
 validar_digitos:
 	addi $sp, $sp, -4
 	sw $ra, 0($sp)
-	pedir_de_nuevo:
+	pedirdenuevo:
 	jal ingresar_numeros
 	li $t0, 0
 	lb $t1, aux($t0)
 	beq $t1, $s1, loopval
 	beq $t1, $s2, loopval
-	#si no es ni + ni -
 	j invalido
-	loopval:  #el loop de digitos
+	loopval:
 		addi $t0, $t0, 1
 		lb $t1, aux($t0)
 		beq $t1, $zero, valido
-		beq $t1, 10, valido
+		beq $t1, 10, limpiar_salto
 		blt $t1, '0', invalido
 		bgt $t1, '9', invalido
 		j loopval 
+	limpiar_salto:
+		sb $zero, aux($t0)
+		j valido
 	invalido: 
 		li $v0, 4
 		la $a0, error1
@@ -188,16 +193,16 @@ validar_digitos:
 		li $v0, 4
 		la $a0, msg1
 		syscall
-		j pedir_de_nuevo
+		j pedirdenuevo
 		pedir_num2:
 			li $v0, 4
 			la $a0, msg4
 			syscall
-			j pedir_de_nuevo
+			j pedirdenuevo
 	valido: 
 		lw $ra, 0($sp)
 		addi $sp, $sp, 4
-		jr $ra	
+		jr $ra
 		
 suma:
 	li $t9,0
@@ -301,9 +306,180 @@ suma:
 				addi $sp, $sp, 4
 				salida_suma:
 				jr $ra
+				
+
 resta:
+	li $t0, 0
+	limpiar_result:
+	sb $zero, result($t0)
+	addi $t0, $t0, 1
+	blt $t0, 52, limpiar_result
+	lb $t6, num1
+	lb $t7, num2
+	beq $t6, $t7, signos_iguales
+	li $s6, 0
+	j ver_mayor
+	signos_iguales:
+	li $s6, 1
+	ver_mayor:
+	bgt $s4, $s5, num1_mayor 
+	blt $s4, $s5, num2_mayor 
+	li $t0, 1 
+	comparar_digitos:
+	bgt $t0, $s4, son_iguales
+	lb $t1, num1($t0)
+	lb $t2, num2($t0) 
+	bgt $t1, $t2, num1_mayor 
+	blt $t1, $t2, num2_mayor 
+	addi $t0, $t0, 1
+	j comparar_digitos 
+	num1_mayor:
+	li $s7, 1          
+	j fin_comparar
+	num2_mayor:
+	li $s7, 2
+	j fin_comparar
+	son_iguales:
+	li $s7, 0          
+	fin_comparar:
+	beq $s6, 0, sumar_magnitudes
+	beq $s7, 2, restar_num2
+	la $t8, num1
+	la $t9, num2
+	move $t0, $s4
+	move $t7, $s5
+	j preparar_resta
+	restar_num2:
+	la $t8, num2
+	la $t9, num1
+	move $t0, $s5
+	move $t7, $s4
+	preparar_resta:
+	li $t3, 0
+	li $t4, 51
+	loop_resta:
+	blez $t0, fin_resta 
+	add $t1, $t8, $t0
+	lb $t1, 0($t1)
+	addi $t1, $t1, -48
+	li $t2, 0
+	blez $t7, salto_abajo
+	add $t2, $t9, $t7
+	lb $t2, 0($t2)
+	addi $t2, $t2, -48
+		salto_abajo:
+		sub $t5, $t1, $t2
+		sub $t5, $t5, $t3
+		li $t3, 0
+		bgez $t5, sin_prestamo
+		addi $t5, $t5, 10
+		li $t3, 1
+		sin_prestamo:
+		addi $t5, $t5, 48
+		sb $t5, result($t4)
+		addi $t4, $t4, -1
+		addi $t0, $t0, -1
+		addi $t7, $t7, -1
+		j loop_resta
+	fin_resta:
+	j poner_signo
+	sumar_magnitudes:
+	move $t0, $s4
+	move $t7, $s5
+	li $t3, 0
+	li $t4, 51
+	loopsuma:
+	blez $t0, finsuma
+	li $t1, 0
+	lb $t1, num1($t0)
+	addi $t1, $t1, -48
+	revisarnum2:
+	li $t2, 0
+	blez $t7, sumar_digitos
+	lb $t2, num2($t7)
+	addi $t2, $t2, -48
+	sumar_digitos:
+	add $t5, $t1, $t2
+	add $t5, $t5, $t3
+	li $t3, 0
+	blt $t5, 10, sin_acarreo
+	addi $t5, $t5, -10
+	li $t3, 1
+	sin_acarreo:
+	addi $t5, $t5, 48
+	sb $t5, result($t4)
+	addi $t4, $t4, -1
+	addi $t0, $t0, -1
+	addi $t7, $t7, -1
+	j loopsuma
+	finsuma:
+	blez $t7, revisar_acarreo
+	li $t1, 0
+	j revisarextra
+	revisarextra:
+	li $t2, 0
+	lb $t2, num2($t7)
+	addi $t2, $t2, -48
+	add $t5, $t2, $t3
+	li $t3, 0
+	blt $t5, 10, sinacarreoextra
+	addi $t5, $t5, -10
+	li $t3, 1
+	sinacarreoextra:
+	addi $t5, $t5, 48
+	sb $t5, result($t4)
+	addi $t4, $t4, -1
+	addi $t7, $t7, -1
+	j finsuma
+	revisar_acarreo:
+	beqz $t3, poner_signo
+	li $t5, 49
+	sb $t5, result($t4)
+	addi $t4, $t4, -1
+	poner_signo:
+	beq $s6, 0, signo_suma
+	beq $s7, 0, signo_mas
+	beq $s7, 2, signo_contrario
+	lb $t6, num1
+	j escribir_signo
+	signo_contrario:
+	lb $t6, num1
+	beq $t6, $s2, signo_mas
+	li $t6, '-'
+	j escribir_signo
+	signo_suma:
+	lb $t6, num1
+	j escribir_signo
+	signo_mas:
+	li $t6, '+'
+	escribir_signo:
+	sb $t6, result($t4)
+	move $t0, $t4
+	lb $t6, result($t0)
+	addi $t0, $t0, 1
+	saltarceros:
+	bge $t0, 51, ponersigno
+	lb $t2, result($t0)
+	bne $t2, 48, ponersigno
+	addi $t0, $t0, 1
+	j saltarceros
+	ponersigno:
+	li $t1, 0
+	sb $t6, result($t1)
+	addi $t1, $t1, 1
+	mover:
+	bgt $t0, 51, fin_mover
+	lb $t2, result($t0)
+	sb $t2, result($t1)
+	addi $t0, $t0, 1
+	addi $t1, $t1, 1
+	j mover
+	fin_mover:
+	li $t2, 0
+	sb $t2, result($t1)
 	jr $ra
- 
+	
 multiplicar:
 	jr $ra
+
 	

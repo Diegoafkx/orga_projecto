@@ -93,6 +93,7 @@ main:
 		syscall
 		li $v0, 4
 		la $a0, result
+		add $a0, $a0, $s4
 		syscall
 		li $v0, 10
 		syscall
@@ -149,9 +150,9 @@ ingresar_numeros:
 	
 #metodo para duplicar el contenido del auxiliador a las variables necesarias
 copiar:
-	lb $t2, 0($t0)
-	sb $t2, 0($t1)
-	beq $t2, $zero, endcop
+	lb $t5, 0($t0)
+	sb $t5, 0($t1)
+	beq $t5, $zero, endcop
 	addi $t0, $t0, 1
 	addi $t1, $t1, 1
 	addi $t3, $t3, 1
@@ -206,15 +207,55 @@ validar_digitos:
 suma:
 	li $t9,0
 	li $t8, 2 #para indicar si se resta o se le suma uno al numero
-	bge $s4, $s5, seguir_suma
-	la $t0, 1
+	li $t0, 1
 	lb $t1, num1($t0)
 	lb $t2, num2($t0)
-	bge $t1, $t2, seguir_suma
+	li $t4, 48
+	bne $t1, $t4, es_cero_n2_suma
+	addi $sp, $sp, -4
+	sw $ra, 0($sp)
+	la $t0, num2
+	la $t1, result
+	beq $t2, $t4, ambos_son_ccsuma
+	jal copiar 
+	li $s4, 0
+	lw $ra, 0($sp)
+	addi $sp, $sp, 4
+	jr $ra
+	ambos_son_ccsuma:
+		li $t0, 0
+		li $t2, 1
+		sb $s1, result($t0)
+		li $t0, 48
+		sb $t0, result($t2)
+		lw $ra, 0($sp)
+		addi $sp, $sp, 4
+		jr $ra
+	es_cero_n2_suma:
+		bne $t2, $t4, cambiar_de_posicion
+		addi $sp, $sp, -4
+		la $t0, num1
+		la $t1, result
+		sw $ra, 0($sp)
+		jal copiar
+		li $s4, 0
+		lw $ra, 0($sp)
+		addi $sp, $sp, 4
+		jr $ra
+	cambiar_de_posicion:
+	li $t0, 1
+	lb $t1, num1($t0)
+	lb $t2, num2($t0)
+	addi $t0, $t0, 1
+	beq $t1, $zero, aux_cambiar_posicion
+	beq $t1, $t2, cambiar_de_posicion
+	aux_cambiar_posicion:
+	beq $t2, $zero, seguir_suma
+	seguir_cambio_de_posicion:
 	li $t9, 1
 	addi $sp, $sp, -4
 	sw $ra, 0($sp)
-	move $t3, $4, 
+	move $t3, $s4 
 	move $s4, $s5
 	move $s5, $t3
 	la $t0, num1
@@ -243,14 +284,16 @@ suma:
 			addi $t3, $t3, -48
 			addi $s5, $s5, -1
 			li $t4, 0
-			bltz $s5, aux_loop_suma #por si el numero de abajo ya se acabo
+			blez $s5, aux_loop_suma #por si el numero de abajo ya se acabo
 			lb $t4, num2($s5)
 			addi $t4, $t4, -48
+			j seguir_loop_suma
 			aux_loop_suma:
 				li $t5, 0 
+			seguir_loop_suma:
 			beq $t8, 2, revisionnum1 #caso para saber si hay que sumar
 			bnez $t8, restar_dies #caso para saber si hay que restar
-			addi $t3, $t3, 1
+			addi $t3, $t3, 1 
 			li $t8, 2	
 			j revisionnum1
 			restar_dies: #caso para saber si hay que restar
@@ -258,8 +301,8 @@ suma:
 				addi $t3, $t3, -1
 				li $t8, 2
 			revisionnum1: #para saber si es negativo el numero
-				bgt $t3, $t4, arreglarsignonum1
-				bne $s2, $t2, arreglarsignonum1
+				bge $t3, $t4, arreglarsignonum1
+				bnez $t3, arreglarsignonum1
 				addi $t3, $t3 ,10 
 				li $t8, 1
 				arreglarsignonum1:
@@ -268,16 +311,18 @@ suma:
 			revisionnum2: #para saber si es negativo el numero
 				bne $s2, $t2, suma_num
 				mul $t4, $t4, -1
-			bgt $t4, $t3, suma_num
 			suma_num:
-				add $t5, $t3, $t4
-				bge $t5, 10, mayor_a_dies #para saber si es mayor a 10
-				ble $t5, -1, menor_a_cero #si es negativo
-				j acoplar_en_resultado
+				
+					add $t5, $t3, $t4
+					bge $t5, 10, mayor_a_dies #para saber si es mayor a 10
+					ble $t5, -1, menor_a_cero #si es negativo
+					beq $t1, $s2, menor_a_cero
+					j acoplar_en_resultado
 			menor_a_cero:
 				bge $t5, -10, aux_menor_a_cero
 				add $t5, $t5, 10
 				aux_menor_a_cero:
+					li $t8, 0
 					mul $t5, $t5, -1
 					bge $t5, $t3, revision_signo #para saber si mayoral primer numero, en casos de restas
 					j acoplar_en_resultado
@@ -292,13 +337,32 @@ suma:
 				acoplar_en_resultado:
 					addi $t5, $t5, 48
 					sb $t5, result($s4)
+					
+		li $v0, 4
+		la $a0, result
+		add $a0, $a0, $s4
+		syscall
 					j loop_suma
 		end_loop_suma:
-			bnez $t8, salir_suma
-			li $t5, 49
-			addi $s4, $s4, -1
-			sb $t5, result($s4)
+			blez $t4, aux_salir_suma
+			aux_salir_suma:
+				move $s4, $t6
+				addi $t6, $t6, 1
+				loop_copiar_suma:
+					beq $t6, 1, salir_Loop_suma_copia
+					lb $t2, result($s4)
+					addi $s4, $s4, -1
+					sb $t2, result($t6)
+					addi $t6, $t6, -1
+					j loop_copiar_suma
+					salir_Loop_suma_copia:
+						addi $s4, $s4, 1	
+						bnez $t8, salir_suma
+						li $t5, 49
+						addi $s4, $s4, -1
+						sb $t5, result($s4)
 			salir_suma:
+				addi $s4, $s4, -1
 				sb $t1, result($s4)
 				beqz, $t9, salida_suma
 				lw $ra, 0($sp)

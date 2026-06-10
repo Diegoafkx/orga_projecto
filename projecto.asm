@@ -83,12 +83,15 @@ main:
 	la $a0, salto
 	syscall
 	lb $t5, ope
+	lb $t1, 0(num1)
+	lb $t2, 0(num2)
 	bne $s1, $t5, restar
+	beq $t1,$s2, restar
+	beq $t2, $s2, retar
+	sumemoss:
 	jal suma
-	
 	j end_main
 	restar:
-		bne $s2, $t5, multiplicacion
 		jal resta
 		j end_main
 	multiplicacion:

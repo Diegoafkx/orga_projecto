@@ -6,6 +6,7 @@ msg2: .asciiz "\nEl numero ingresado es:\n"
 msg3: .asciiz "Las operaciones disponibles son:\n '-' para resta\n '+' para suma\n '*' para multiplicacion\nEscriba el signo de la operacion que desea hacer:\n" 
 msg4: .asciiz "\nPorfavor ingrese el segundo numero, con un signo de suma o resta en la primera posicion: \n"
 error1: .asciiz "Se ingreso un caracter invalido\n"
+error2: .asciiz "Solo se permiten 25 digitos como máximo.\n"
 resultado: .asciiz "El resultado de la operacion es:\n"
  
 
@@ -16,8 +17,6 @@ num1 : .space 51
 num2: .space 51
 ope: .space 2
 result: .space 52
-
-error2: .asciiz "Solo se permiten 25 digitos como máximo.\n"
 temp: .space 52
 aux2: .space 52
 
@@ -259,15 +258,7 @@ suma:
 		addi $sp, $sp, 4
 		jr $ra
 	cambiar_de_posicion:
-	li $t0, 1
-	aux_inicio_cambio_posicion:
-	lb $t1, num1($t0)
-	lb $t2, num2($t0)
-	addi $t0, $t0, 1
-	beq $t1, $zero, aux_cambiar_posicion
-	beq $t1, $t2, aux_inicio_cambio_posicion
-	aux_cambiar_posicion:
-	beq $t2, $zero, seguir_suma
+		bge $s4, $s5, seguir_suma
 	seguir_cambio_de_posicion:
 	li $t9, 1
 	addi $sp, $sp, -4
@@ -287,8 +278,8 @@ suma:
 	la $t1, num2
 	li $t3, 0
 	jal copiar
-	move $t6, $s4 #t6 es para aux el metodo mayor a 10
 	seguir_suma:
+		move $t6, $s4 #t6 es para aux el metodo mayor a 10
 		li $t0, 0
 		lb $t1, num1($t0)
 		lb $t2, num2($t0)

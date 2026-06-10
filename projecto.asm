@@ -16,6 +16,11 @@ num1 : .space 51
 num2: .space 51
 ope: .space 2
 result: .space 52
+
+error2: .asciiz "Solo se permiten 25 digitos como máximo.\n"
+temp: .space 52
+aux2: .space 52
+
 .text
  
 	
@@ -144,7 +149,7 @@ ingresar_numeros:
 		li $a1, 51
 		j endinn
 	elseinn:
-		li $a1, 26
+		li $a1, 27
 		j endinn
 	endinn:
 		syscall 
@@ -177,7 +182,7 @@ validar_digitos:
 	loopval:
 		addi $t0, $t0, 1
 		lb $t1, aux($t0)
-		beq $t1, $zero, valido
+		beq $t1, $zero, validar_longitud
 		beq $t1, 10, limpiar_salto
 		blt $t1, '0', invalido
 		bgt $t1, '9', invalido
@@ -185,6 +190,16 @@ validar_digitos:
 	limpiar_salto:
 		sb $zero, aux($t0)
 		j valido
+	validar_longitud:
+		beq $s0, $zero, valido
+		addi $t2, $t0, -1
+		li $t3, 25
+		ble $t2, $t3, valido
+		li $v0, 4
+		la $a0, error2
+		syscall
+		j invalido
+
 	invalido: 
 		li $v0, 4
 		la $a0, error1

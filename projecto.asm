@@ -83,11 +83,11 @@ main:
 	la $a0, salto
 	syscall
 	lb $t5, ope
-	lb $t1, 0(num1)
-	lb $t2, 0(num2)
+	lb $t1, num1
+	lb $t2, num2
 	bne $s1, $t5, restar
 	beq $t1,$s2, restar
-	beq $t2, $s2, retar
+	beq $t2, $s2, restar
 	sumemoss:
 	jal suma
 	j end_main
@@ -510,6 +510,7 @@ resta:
 	fin_mover:
 	li $t2, 0
 	sb $t2, result($t1)
+	li $s4, 0
 	jr $ra
 	
 multiplicar:

@@ -83,30 +83,32 @@ main:
 	la $a0, salto
 	syscall
 	lb $t5, ope
-	lb $t1, num1
-	lb $t2, num2
-	bne $s1, $t5, restar
-	beq $t1,$s2, restar
-	beq $t2, $s2, restar
-	sumemoss:
-	jal suma
+	beq $t5, $s1, hacer_suma
+	beq $t5, $s2, hacer_resta
+	beq $t5, $s3, hacer_multiplicacion
 	j end_main
-	restar:
-		jal resta
-		j end_main
-	multiplicacion:
-		jal multiplicar
-		j end_main
+
+	hacer_suma:
+    jal suma
+    j end_main
+	hacer_resta:
+    jal resta
+    j end_main
+	hacer_multiplicacion:
+    jal multiplicar
+    j end_main
 	end_main:
-		li $v0, 4
-		la $a0, resultado
-		syscall
-		li $v0, 4
-		la $a0, result
-		add $a0, $a0, $s4
-		syscall
-		li $v0, 10
-		syscall
+    	li $v0, 4
+    	la $a0, resultado
+    	syscall
+
+    	li $v0, 4
+    	la $a0, result
+    	syscall
+
+    	li $v0, 10
+    	syscall
+	
 	
 	
 #metodo para insertar el signo de la operacion
@@ -514,6 +516,131 @@ resta:
 	jr $ra
 	
 multiplicar:
-	jr $ra
+    	li $t0, 0
+	
+	limpiar_todo:
+    	sb $zero, result($t0)
+    	sb $zero, aux2($t0)
+    	sb $zero, temp($t0)
+    	addi $t0, $t0, 1
+    	blt $t0, 52, limpiar_todo
+    	lb $t0, num1
+    	lb $t1, num2
+    	beq $t0, $t1, signo_positivo
+    	li $t2, '-'
+    	j guardar_signo
+	
+	signo_positivo:
+    	li $t2, '+'
+	
+	guardar_signo:
+    	li $t0, 1
+	revisar_cero_num1:
+    	bgt $t0, $s4, resultado_cero
+    	lb $t3, num1($t0)
+    	bne $t3, '0', revisar_num2
+    	addi $t0, $t0, 1
+    	j revisar_cero_num1
+
+	revisar_num2:
+    	li $t0, 1
+	revisar_cero_num2:
+    	bgt $t0, $s5, resultado_cero
+    	lb $t3, num2($t0)
+    	bne $t3, '0', hacer_multiplicacion2
+    	addi $t0, $t0, 1
+    	j revisar_cero_num2
+
+	resultado_cero:
+    	sb $t2, result
+    	li $t3, '0'
+    	sb $t3, result+1
+    	sb $zero, result+2
+    	li $s4, 1
+    	jr $ra
+
+	hacer_multiplicacion2:
+    	move $t8, $s4
+
+	bucle_num1:
+    	blez $t8, construir_resultado
+    	lb $t0, num1($t8)
+    	addi $t0, $t0, -48
+    	move $t9, $s5
+
+	bucle_num2:
+    	blez $t9, siguiente_digito_num1
+    	lb $t1, num2($t9)
+    	addi $t1, $t1, -48
+    	sub $t4, $s4, $t8
+    	sub $t5, $s5, $t9
+    	add $t6, $t4, $t5
+    	li $t7, 50
+    	sub $t7, $t7, $t6
+    	mul $t3, $t0, $t1
+    	lb $t4, aux2($t7)
+    	beqz $t4, aux2_vacio
+    	addi $t4, $t4, -48
+    	j aux2_tiene_valor
+
+	aux2_vacio:
+    	li $t4, 0
+
+	aux2_tiene_valor:
+    	add $t3, $t3, $t4
+    	li $t4, 10
+    	div $t3, $t4
+    	mfhi $t5
+    	mflo $t3
+    	addi $t5, $t5, 48
+    	sb $t5, aux2($t7)
+    	beqz $t3, sin_llevado
+    	addi $t7, $t7, -1
+    	lb $t4, aux2($t7)
+    	beqz $t4, llevado_vacio
+    	addi $t4, $t4, -48
+    	j llevado_tiene_valor
+	
+	llevado_vacio:
+    	li $t4, 0
+    		
+	llevado_tiene_valor:
+    	add $t3, $t3, $t4
+    	addi $t3, $t3, 48
+    	sb $t3, aux2($t7)
+    	
+	sin_llevado:
+    	addi $t9, $t9, -1
+    	j bucle_num2
+
+	siguiente_digito_num1:
+    	addi $t8, $t8, -1
+    	j bucle_num1
+
+	construir_resultado:
+    	li $t0, 1
+    	
+	buscar_primer_digito:
+    	bgt $t0, 50, resultado_cero
+    	lb $t1, aux2($t0)
+    	bnez $t1, copiar_resultado
+    	addi $t0, $t0, 1
+    	j buscar_primer_digito
+
+	copiar_resultado:
+    	sb $t2, result
+    	li $t3, 1
+
+	copiar_bucle:
+    	lb $t1, aux2($t0)
+    	sb $t1, result($t3)
+    	beqz $t1, fin_multiplicar
+    	addi $t0, $t0, 1
+    	addi $t3, $t3, 1
+    	j copiar_bucle
+
+	fin_multiplicar:
+    	move $s4, $t3
+    	jr $ra
 
 	

@@ -146,19 +146,11 @@ ingresar_operador:
  
 #metodo para obtencion de los numeros
 ingresar_numeros:
-	#aqui se recibe el primer numero
 	li $v0, 8
 	la $a0, aux
-	ifinn: 
-	bne $zero, $s0, elseinn
-		li $a1, 51
-		j endinn
-	elseinn:
-		li $a1, 27
-		j endinn
-	endinn:
-		syscall 
-		jr $ra
+	li $a1, 51
+	syscall
+	jr $ra
 	
 #metodo para duplicar el contenido del auxiliador a las variables necesarias
 copiar:
@@ -174,55 +166,78 @@ copiar:
 		jr $ra	
 		
 
-validar_digitos:
+	validar_digitos:
 	addi $sp, $sp, -4
 	sw $ra, 0($sp)
+
 	pedirdenuevo:
 	jal ingresar_numeros
 	li $t0, 0
 	lb $t1, aux($t0)
-	beq $t1, $s1, loopval
-	beq $t1, $s2, loopval
-	j invalido
-	loopval:
-		addi $t0, $t0, 1
-		lb $t1, aux($t0)
-		beq $t1, $zero, validar_longitud
-		beq $t1, 10, limpiar_salto
-		blt $t1, '0', invalido
-		bgt $t1, '9', invalido
-		j loopval 
-	limpiar_salto:
-		sb $zero, aux($t0)
-		j valido
-	validar_longitud:
-		beq $s0, $zero, valido
-		addi $t2, $t0, -1
-		li $t3, 25
-		ble $t2, $t3, valido
-		li $v0, 4
-		la $a0, error2
-		syscall
-		j invalido
+	beq $t1, $s1, revisar_digitos
+	beq $t1, $s2, revisar_digitos
+	j error_caracter
 
-	invalido: 
-		li $v0, 4
-		la $a0, error1
-		syscall
-		bne $s6, $zero, pedir_num2
-		li $v0, 4
-		la $a0, msg1
-		syscall
-		j pedirdenuevo
-		pedir_num2:
-			li $v0, 4
-			la $a0, msg4
-			syscall
-			j pedirdenuevo
-	valido: 
-		lw $ra, 0($sp)
-		addi $sp, $sp, 4
-		jr $ra
+	revisar_digitos:
+	addi $t0, $t0, 1
+	li $t2, 0
+
+	bucle_validacion:
+	lb $t1, aux($t0)
+	beq $t1, $zero, validar_longitud
+	beq $t1, 10, fin_linea
+	blt $t1, '0', error_caracter
+	bgt $t1, '9', error_caracter
+	addi $t2, $t2, 1
+	addi $t0, $t0, 1
+	j bucle_validacion
+
+	fin_linea:
+	sb $zero, aux($t0)
+	j validar_longitud
+
+	validar_longitud:
+	beq $s0, $zero, validado_ok
+	li $t3, 25
+	ble $t2, $t3, validado_ok
+	j error_longitud
+
+	error_caracter:
+	li $v0, 4
+	la $a0, error1
+	syscall
+	bne $s6, $zero, pedir_msg2
+	li $v0, 4
+	la $a0, msg1
+	syscall
+	j pedirdenuevo
+
+	pedir_msg2:
+	li $v0, 4
+	la $a0, msg4
+	syscall
+	j pedirdenuevo
+
+	error_longitud:
+	li $v0, 4
+	la $a0, error2
+	syscall
+	bne $s6, $zero, pedir_msg4
+	li $v0, 4
+	la $a0, msg1
+	syscall
+	j pedirdenuevo
+
+	pedir_msg4:
+	li $v0, 4
+	la $a0, msg4
+	syscall
+	j pedirdenuevo
+
+	fin_validacion:
+	lw $ra, 0($sp)
+	addi $sp, $sp, 4
+	jr $ra
 		
 suma:
 	li $t9,0

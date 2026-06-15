@@ -5,7 +5,7 @@ msg1: .asciiz "\nPorfavor ingrese el primer numero, con un signo de suma o resta
 msg2: .asciiz "\nEl numero ingresado es:\n"
 msg3: .asciiz "Las operaciones disponibles son:\n '-' para resta\n '+' para suma\n '*' para multiplicacion\nEscriba el signo de la operacion que desea hacer:\n" 
 msg4: .asciiz "\nPorfavor ingrese el segundo numero, con un signo de suma o resta en la primera posicion: \n"
-error1: .asciiz "Se ingreso un caracter invalido\n"
+error1: .asciiz "\nSe ingreso un caracter invalido\n"
 error2: .asciiz "Solo se permiten 25 digitos como máximo.\n"
 resultado: .asciiz "El resultado de la operacion es:\n"
  

@@ -197,9 +197,9 @@ copiar:
 	j validar_longitud
 
 	validar_longitud:
-	beq $s0, $zero, validado_ok
+	beq $s0, $zero, fin_validacion
 	li $t3, 25
-	ble $t2, $t3, validado_ok
+	ble $t2, $t3, fin_validacion
 	j error_longitud
 
 	error_caracter:

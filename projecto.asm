@@ -86,11 +86,18 @@ main:
 	beq $t5, $s1, hacer_suma
 	beq $t5, $s2, hacer_resta
 	beq $t5, $s3, hacer_multiplicacion
-	j end_main
-
 	hacer_suma:
-    jal suma
-    j end_main
+	li $t0, 0
+	lb $t1, num1($t0)
+	lb $t2, num2($t0)
+	beq $t1, $s2, validacion_signo_sumas
+	beq $t2, $s2, hacer_resta
+	j sumasuma
+	validacion_signo_sumas:
+		bne $t2, $s2, hacer_resta
+	sumasuma:		 
+   	 	jal suma
+    		j end_main
 	hacer_resta:
     jal resta
     j end_main

@@ -86,18 +86,11 @@ main:
 	beq $t5, $s1, hacer_suma
 	beq $t5, $s2, hacer_resta
 	beq $t5, $s3, hacer_multiplicacion
+	j end_main
+
 	hacer_suma:
-	li $t0, 0
-	lb $t1, num1($t0)
-	lb $t2, num2($t0)
-	beq $t1, $s2, validacion_signo_sumas
-	beq $t2, $s2, hacer_resta
-	j sumasuma
-	validacion_signo_sumas:
-		bne $t2, $s2, hacer_resta
-	sumasuma:		 
-   	 	jal suma
-    		j end_main
+    jal suma
+    j end_main
 	hacer_resta:
     jal resta
     j end_main
@@ -177,7 +170,7 @@ copiar:
 	addi $sp, $sp, -4
 	sw $ra, 0($sp)
 
-	pedirdenuevo:
+	pedirdenuevo: # si hayrror
 	jal ingresar_numeros
 	li $t0, 0
 	lb $t1, aux($t0)
@@ -247,6 +240,9 @@ copiar:
 	jr $ra
 		
 suma:
+	lb $t6, num1
+	lb $t7, num2
+	bne $t6, $t7, arreglar_signos
 	li $t9,0
 	li $t8, 2 #para indicar si se le suma uno al numero
 	li $t0, 1
@@ -364,6 +360,17 @@ suma:
 				salida_suma:
 				jr $ra
 				
+arreglar_signos:
+	lb $t0, num2
+	beq $t0, $s2, era_menos
+	li $t0, '-'
+	sb $t0, num2
+	j resta
+	era_menos:
+	li $t0, '+'
+	sb $t0, num2
+	j resta		
+				
 
 resta:
 	li $t0, 0
@@ -382,7 +389,7 @@ resta:
 	bgt $s4, $s5, num1_mayor 
 	blt $s4, $s5, num2_mayor 
 	li $t0, 1 
-	comparar_digitos:
+	comparar_digitos:  #paa ver cual numero es mayor
 	bgt $t0, $s4, son_iguales
 	lb $t1, num1($t0)
 	lb $t2, num2($t0) 
@@ -399,7 +406,7 @@ resta:
 	son_iguales:
 	li $s7, 0          
 	fin_comparar:
-	beq $s6, 0, sumar_magnitudes
+	beq $s6, 0, sumar_magnitudes #si los signos eran distintos se suma
 	beq $s7, 2, restar_num2
 	la $t8, num1
 	la $t9, num2

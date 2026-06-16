@@ -1,6 +1,6 @@
 .data 
 #las variables con los mensajes a escribir
-wlcom: .asciiz "Bienvenido a la calculadora de numeros grandres \n"
+wlcom: .asciiz "Bienvenido a la calculadora de numeros grandes \n"
 msg1: .asciiz "\nPorfavor ingrese el primer numero, con un signo de suma o resta en la primera posicion: \n"
 msg2: .asciiz "\nEl numero ingresado es:\n"
 msg3: .asciiz "Las operaciones disponibles son:\n '-' para resta\n '+' para suma\n '*' para multiplicacion\nEscriba el signo de la operacion que desea hacer:\n" 
